@@ -1,0 +1,5 @@
+data/
+notebooks/
+*.ui
+*.png
+Updated_Names.csv
