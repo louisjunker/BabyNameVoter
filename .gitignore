@@ -11,3 +11,6 @@
 /pastel color.png
 /Old*
 /__*
+/build
+/dist
+*.spec
