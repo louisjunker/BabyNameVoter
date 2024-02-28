@@ -1,9 +1,13 @@
+.gitignore
 /.DS_Store
 /Updated_Names.csv
-/data
-/db
+/data/Names.csv
+/data/Names_backup.csv
+/data/Names_User*
+/db/*
 /design.ui
 /design1.ui
 /notebooks
 /pastel color.png
 /Old*
+/__*

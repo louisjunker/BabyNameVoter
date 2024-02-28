@@ -13,16 +13,8 @@ import sqlite3
 import pandas as pd
 import numpy as np
 import sys
+import import_da_names
 
-
-# Importing Data
-#df_name1 = pd.read_excel("data/beggedele.xlsx")
-#df_name2 = pd.read_excel("data/drengenavne.xlsx")
-#df_name3 = pd.read_excel("data/pigenavne.xlsx")
-#df_name = pd.concat([df_name1, df_name2, df_name3], ignore_index=True)
-#df_name.replace({'Ja': 1, 'Nej': 0}, inplace=True)
-#df_name = df_name.rename(columns={'Navn' : 'Name', 'Drengenavn' : 'Male', 'Pigenavn':'Female'})
-#df_name.to_csv('data/Names_officialVersion.csv') #Be careful changing this!!!
 
 # Setting up global gender choice.
 boy = 1
@@ -43,7 +35,6 @@ c = conn.cursor()
 c.execute("""CREATE TABLE if not exists users(username text)""")
 c.execute("""CREATE TABLE if not exists names(Name text, Male integer, Female integer)""")
 c.execute("""CREATE TABLE if not exists votes(Name text, Username text, Vote integer)""")
-
 # Commit changes
 conn.commit()
 # Close Database 
@@ -181,8 +172,7 @@ class Ui_MainWindow(object):
         self.search_name.setObjectName("search_name")
         self.button_search = QtWidgets.QPushButton(self.page_search)
         self.button_search.setGeometry(QtCore.QRect(300, 270, 120, 40))
-        self.button_search.setStyleSheet("background-color:#e5ea93;\n"
-"color:black")
+        self.button_search.setStyleSheet("background-color:#e5ea93;\n""color:black")
         self.button_search.setObjectName("button_search")
         self.button_search.clicked.connect(self.clicked_search)
         self.stackedWidget.addWidget(self.page_search)
@@ -205,8 +195,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(25)
         self.button_boy.setFont(font)
-        self.button_boy.setStyleSheet("background-color:#99c8ec;\n"
-"color:black")
+        self.button_boy.setStyleSheet("background-color:#99c8ec;\n""color:black")
         self.button_boy.setObjectName("button_boy")
         self.button_boy.clicked.connect(self.clicked_boy)
     # Button for girl
@@ -215,8 +204,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(25)
         self.button_girl.setFont(font)
-        self.button_girl.setStyleSheet("background-color:#f6b8c1;\n"
-"color:black")
+        self.button_girl.setStyleSheet("background-color:#f6b8c1;\n""color:black")
         self.button_girl.setObjectName("button_girl")
         self.button_girl.clicked.connect(self.clicked_girl)
     # Button for unknown gender
@@ -225,8 +213,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(22)
         self.button_unknowngender.setFont(font)
-        self.button_unknowngender.setStyleSheet("background-color:#e1c8ea;\n"
-"color:black")
+        self.button_unknowngender.setStyleSheet("background-color:#e1c8ea;\n""color:black")
         self.button_unknowngender.setObjectName("button_unknowngender")
         self.stackedWidget.addWidget(self.page_gender)
         self.button_unknowngender.clicked.connect(self.clicked_unknown)
@@ -271,8 +258,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(20)
         self.button_no.setFont(font)
-        self.button_no.setStyleSheet("background-color:#ff6961;\n"
-"color:black")
+        self.button_no.setStyleSheet("background-color:#ff6961;\n""color:black")
         self.button_no.setObjectName("button_no")
         self.button_no.setToolTip('Use "N" as shortcut') 
         self.button_no.clicked.connect(self.clicked_no)
@@ -306,6 +292,8 @@ class Ui_MainWindow(object):
     # Menubar Button - Load new name file
         self.actionLoadName = QtWidgets.QAction(MainWindow)
         self.actionLoadName.setObjectName("actionLoadName")
+        self.actionLoadName.triggered.connect(self.clicked_import)
+
     # Menubar Button - Log out
         self.actionLog_out = QtWidgets.QAction(MainWindow)
         self.actionLog_out.setObjectName("actionLog_out")
@@ -362,7 +350,6 @@ class Ui_MainWindow(object):
         self.actionLoadName.setText(_translate("MainWindow", "Load new names - Delete old names"))
         self.actionLog_out.setText(_translate("MainWindow", "Log out"))
         self.actionExportData.setText(_translate("MainWindow", "Export Voting Data"))
-
 
 
 
@@ -453,7 +440,6 @@ class Ui_MainWindow(object):
         conn.close()
         self.name_database()
 
-
     # Voting YES
     def clicked_yes(self):
         global name
@@ -480,7 +466,7 @@ class Ui_MainWindow(object):
         conn.close()
         self.random_name()
 
-    # Random Name generater
+    # Setting up name databases
     def name_database(self):
         global name
         global names_df
@@ -503,7 +489,8 @@ class Ui_MainWindow(object):
         conn.commit()
         conn.close()
         # Dropping name user already voted for
-        names_df = names_df[names_df['Username'] != user_name]
+        names_df['Username'].fillna("", inplace=True)
+        names_df = names_df[names_df['Username'] != user_name].reset_index()
         names_df = names_df.drop(columns=['Username'])
         names_df['Vote'].fillna(0, inplace=True)
         #if (users['username'].eq(user_name)).any():
@@ -513,12 +500,13 @@ class Ui_MainWindow(object):
         #Dividing data into positive voted and not voted (+ negative voted) Names
         names_df_voted = names_df[names_df['Vote'] > 0]
         names_df_notvoted = names_df[names_df['Vote'] <= 0]
-        
+    # Random Name generater
     def random_name(self):
         global name
         global names_df
         global names_df_voted
         global names_df_notvoted
+        self.name_database()
         # Choosing name from either voted or not voted dataaset. Always starts with positive voted.
         if len(names_df_voted['Name']) != 0: 
             name = np.random.choice(names_df_voted['Name'])
@@ -533,7 +521,6 @@ class Ui_MainWindow(object):
         user_name = ""
         self.stackedWidget.setCurrentIndex(0)
         self.username.setText("User: " + user_name)
-
 
     # Menubar Button - Delete old Data
     def clicked_delete(self):
@@ -565,30 +552,40 @@ class Ui_MainWindow(object):
             msg_delete_yes.setText("All data deleted succesfully")
             x = msg_delete_yes.exec_()
 
-
     # Menubar Button - Import new Names file 
-    def clicked_import(self):#  NOT FINISHED
-        path = ""
+    def clicked_import(self):
+        #Importing names
+        import_da_names.import_data()
+        df_name = pd.read_csv("data/Names_officialVersion.csv", index_col=[0])
+        # Showing message box
+        msg_import = QMessageBox()
+        msg_import.setWindowTitle("Importing data")
+        msg_import.setText("Do you have your own data file with names to import?")
+        msg_import.setIcon(QMessageBox.Question)
+        msg_import.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_import.setDefaultButton(QMessageBox.No)
+        x = msg_import.exec()
+
+        # If messagebox is yes, load the new file. 
+        if x == QMessageBox.StandardButton.Yes:
+            fname_open, _ = QFileDialog.getOpenFileName(None, "Open file", "", "CSV Files (*.csv)")
+            if fname_open != "":
+                df_name_users = pd.read_csv(fname_open)
+                df_name_users = df_name[['Name', 'Male', 'Female']]
+                df_name = pd.concat([df_name, df_name_users], ignore_index=True)
+                df_name = df_name.drop_duplicates()
+                print("Names imported")
+        #Connecting do database
         conn = sqlite3.connect("db/data.db")
+        #Adding cursor
         c = conn.cursor()
-
-        conn.commit()
-        conn.close()
-
-    def insert_name(self): # NOT FINISHED
-        # Inserting names data to SQL
-        #Connecting to database
-        conn = sqlite3.connect("db/data.db")
-        # Inserting data 
-        df_name = pd.read_csv(path, index_col=[0])
-        ## READ USER DATA AND APPEND TO THIS DATASET
-        # DELETE ALL NAMES; AND ADD ALL AGAIN (NO VOTES LOST)
-        #user_path = ""
-        #df_name_provided = pd.read_csv(user_path)
+        #Deleting all existing names.
+        c.execute("DELETE FROM names;",)
+        #Adding new dataframe
         df_name.to_sql('names', conn, if_exists='append', index=False)
-        # Commit changes
+        # Commiting changes
         conn.commit()
-        # Close Database 
+        # Closing connectings
         conn.close()
 
     # Menubar Button - Export voting data
